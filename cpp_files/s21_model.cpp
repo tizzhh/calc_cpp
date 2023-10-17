@@ -24,7 +24,17 @@ bool S21::Model::NormalizeString(
   expression_ = str;
 
   ReplaceFuncsNames();
-
+  if (!CheckParenthesisCorrectness()) {
+    check = false;
+  } else if (!DotCheck()) {
+    check = false;
+  } else if (!OperCheck()) {
+    check = false;
+  } else if (!NumberCheck()) {
+    check = false;
+  } else {
+    ConvertUnary();
+  }
   return check;
 }
 
@@ -79,7 +89,10 @@ bool S21::Model::DotCheck() {
 
 bool S21::Model::OperCheck() {
   bool check = true;
-  if (IsOper(expression_[0] || IsOper(expression_[expression_.length() - 1]))) {
+  std::string opers_without_unary = "*/^~`%";
+  bool unary_check =
+      opers_without_unary.find(expression_[0]) != std::string::npos;
+  if (unary_check || IsOper(expression_[expression_.length() - 1])) {
     check = false;
   }
   for (int i = 0, len = expression_.length(); i < len && check; ++i) {
@@ -101,9 +114,9 @@ bool S21::Model::NumberCheck() {
   bool check = true;
   for (int i = 0, len = expression_.length(); i < len && check; ++i) {
     if (IsDigit(expression_[i])) {
-      if (i + 1 < len &&
-          !IsOper(expression_[i + 1] && expression_[i + 1] != '.' &&
-                  !IsDigit(expression_[i + 1]) && expression_[i + 1] != ')')) {
+      if (i + 1 < len && !IsOper(expression_[i + 1]) &&
+          expression_[i + 1] != '.' && !IsDigit(expression_[i + 1]) &&
+          expression_[i + 1] != ')') {
         check = false;
       }
     }
@@ -111,7 +124,37 @@ bool S21::Model::NumberCheck() {
   return check;
 }
 
-void S21::Model::ReplaceFuncsNames() {}
+void S21::Model::ConvertUnary() {
+  if (expression_[0] == '-') {
+    expression_[0] = '~';
+  } else if (expression_[0] == '+') {
+    expression_[0] = '`';
+  }
+  for (int i = 1, len = expression_.length(); i < len; ++i) {
+    if (expression_[i] == '-' && expression_[i - 1] == '(') {
+      expression_[i] = '~';
+    }
+    if (expression_[i] == '+' && expression_[i - 1] == '(') {
+      expression_[i] = '`';
+    }
+  }
+}
+
+void S21::Model::ReplaceFuncsNames() {
+  std::unordered_map<std::string, char> funcMappings = {
+      {"sin", s21_SIN},   {"cos", s21_COS},   {"tan", s21_TAN},
+      {"acos", s21_ACOS}, {"asin", s21_ASIN}, {"atan", s21_ATAN},
+      {"sqrt", s21_SQRT}, {"ln", s21_LN},     {"log", s21_LOG},
+      {"mod", '%'}};
+
+  for (const auto &mapping : funcMappings) {
+    size_t pos = 0;
+    while ((pos = expression_.find(mapping.first, pos)) != std::string::npos) {
+      expression_.replace(pos, mapping.first.length(), 1, mapping.second);
+      ++pos;
+    }
+  }
+}
 
 bool S21::Model::IsFunc(const char &ch) {
   return ch >= s21_COS && ch <= s21_LOG;
@@ -124,6 +167,8 @@ bool S21::Model::IsOper(const char &ch) {
 
 bool S21::Model::IsDigit(const char &ch) { return ch >= '0' && ch <= '9'; }
 
+std::string S21::Model::GetExpression() const noexcept { return expression_; }
+
 int main(int argc, char *argv[]) {
   S21::Model m;
   std::string input_string(argv[1]);
@@ -131,8 +176,9 @@ int main(int argc, char *argv[]) {
 
   if (isValid) {
     std::cout << "Input string is valid." << std::endl;
+    std::cout << '\n' << m.GetExpression() << '\n';
   } else {
-    std::cout << "Input string is not valid." << std::endl;
+    std::cout << "ERROR, please provide correct input" << std::endl;
   }
 
   return 0;

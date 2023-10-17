@@ -9,6 +9,7 @@
 #include <stack>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 namespace S21 {
 class Model {
@@ -20,6 +21,7 @@ class Model {
   bool OperCheck();
   bool DotCheck();
   bool CheckParenthesisCorrectness();
+  void ConvertUnary();
   bool IsDigit(const char &ch);
   bool IsOper(const char &ch);
   bool IsFunc(const char &ch);
@@ -52,6 +54,7 @@ class Model {
   bool NormalizeString(std::string &str);
   bool ConvertToPostfix();
   void Calculate();
+  std::string GetExpression() const noexcept;
 };
 }  // namespace S21
 #endif
