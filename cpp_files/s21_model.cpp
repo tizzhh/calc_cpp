@@ -6,16 +6,58 @@ void S21::Model::Solve(std::string &input_str) {
   } else if (!ConvertToPostfix()) {
     expression_ = "ERROR, please provide correct input";
   } else {
-    Calculate();
+    double res = Calculate();
     std::ostringstream oss;
-    oss << std::fixed << std::setprecision(7) << std::get<0>(output_.back());
+    oss << std::fixed << std::setprecision(7) << res;
     expression_ = oss.str();
   }
 }
 
-void S21::Model::Calculate() { return; }
+double S21::Model::Calculate() {
+  double value = 0, x = 0;
+  stack_.clear();
+  if (std::get<1>(output_.back())) {
+    x = std::get<0>(output_.back());
+    output_.pop_back();
+  }
 
-bool S21::Model::ConvertToPostfix() {
+  auto iter = output_.begin();
+
+  while (iter != output_.end()) {
+    if (std::get<2>(*iter) == s21_NUM) {
+      if (std::get<1>(*iter) == 'x') {
+        stack_.push_back(std::make_tuple(x, 0, s21_NUM));
+      } else {
+        stack_.push_back(std::make_tuple(std::get<0>(*iter), 0, s21_NUM));
+      }
+    } else {
+      value = std::get<0>(stack_.back());
+      stack_.pop_back();
+      bool is_binary = IsOperBinary(std::get<1>(*iter));
+      HandleOperCalc(value, !stack_.empty() ? std::get<0>(stack_.back()) : 0,
+                     std::get<1>(*iter));
+      if (is_binary && !stack_.empty()) {
+        stack_.pop_back();
+      }
+      stack_.push_back(std::make_tuple(value, 0, s21_NUM));
+    }
+    ++iter;
+  }
+  value = std::get<0>(stack_.back());
+  return value;
+}
+
+void S21::Model::HandleOperCalc(double &value, const double &stack_val,
+                                const char &oper) {}
+
+bool S21::Model::IsOperBinary(const char &oper) {
+  std::string opers = "+-*/^%";
+  return opers.find(oper) != std::string::npos;
+}
+
+bool S21::Model::ConvertToPostfix() {  // добавить ошибки, че-то там если
+                                       // осталась скобовчка в стэке (в задании
+                                       // глянуть)
   bool status = true;
   output_.clear();
   stack_.clear();
@@ -38,19 +80,20 @@ bool S21::Model::ConvertToPostfix() {
     output_.push_back(std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
     stack_.pop_back();
   }
-  output_.reverse();
+  output_.reverse();  // не уверен, что это нужно, либо менять везде на .front()
+                      // в калкулейте
 
   PrintList();
 
   return status;
 }
 
-void S21::Model::PrintList() {
+void S21::Model::PrintList() const noexcept {
   for (const auto &elem : output_) {
     if (std::get<2>(elem) == s21_OPER) {
-      std::cout << std::get<1>(elem);
+      std::cout << std::get<1>(elem) << ' ';
     } else {
-      std::cout << std::get<0>(elem);
+      std::cout << std::get<0>(elem) << ' ';
     }
   }
   std::cout << '\n';
@@ -106,9 +149,7 @@ int S21::Model::CheckPrecedence(const char &oper) {
   return precedence;
 }
 
-bool S21::Model::NormalizeString(
-    std::string &str) {  // чеки, конверт в унарный, замена функций на
-                         // соответсвующие значения из енама
+bool S21::Model::NormalizeString(std::string &str) {
   bool check = true;
   expression_ = str;
 
@@ -262,8 +303,11 @@ int main(int argc, char *argv[]) {
   S21::Model m;
   std::string input_string(argv[1]);
 
-  m.NormalizeString(input_string);
-  m.ConvertToPostfix();
+  m.Solve(input_string);
+  std::cout << m.GetExpression() << '\n';
+
+  // m.NormalizeString(input_string);
+  // m.ConvertToPostfix();
 
   // bool isValid = m.NormalizeString(input_string);
   // if (isValid) {
