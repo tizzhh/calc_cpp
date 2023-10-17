@@ -54,32 +54,12 @@ class Model {
     s21_DIFFER,
   };
 
-  std::unordered_map<char, std::function<double(double, double)>>
-      math_operations_ = {
-          {'+', [](double x, double y) { return x + y; }},
-          {'-', [](double x, double y) { return y - x; }},
-          {'*', [](double x, double y) { return x * y; }},
-          {'/', [](double x, double y) { return y / x; }},
-          {'^', [](double x, double y) { return std::pow(x, y); }},
-          {'%', [](double x, double y) { return std::fmod(x, y); }},
-          {'~', [](double x, double y) { return -x; }},
-          {s21_COS, [](double x, double y) { return std::cos(x); }},
-          {s21_SIN, [](double x, double y) { return std::sin(x); }},
-          {s21_TAN, [](double x, double y) { return std::tan(x); }},
-          {s21_ACOS, [](double x, double y) { return std::acos(x); }},
-          {s21_ASIN, [](double x, double y) { return std::asin(x); }},
-          {s21_ATAN, [](double x, double y) { return std::atan(x); }},
-          {s21_SQRT, [](double x, double y) { return std::sqrt(x); }},
-          {s21_LN, [](double x, double y) { return std::log(x); }},
-          {s21_LOG, [](double x, double y) { return std::log10(x); }},
-  };
-
  public:
   Model() = default;
   ~Model() = default;
 
-  void Solve(std::string &input_str);
-  bool NormalizeString(std::string &str);
+  void Solve(const std::string &input_str);
+  bool NormalizeString(const std::string &str);
   bool ConvertToPostfix();
   double Calculate();
   std::string GetExpression() const noexcept;

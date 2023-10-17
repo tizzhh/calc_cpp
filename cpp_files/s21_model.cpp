@@ -1,6 +1,6 @@
 #include "s21_model.h"
 
-void S21::Model::Solve(std::string &input_str) {
+void S21::Model::Solve(const std::string &input_str) {
   if (!NormalizeString(input_str)) {
     expression_ = "ERROR, please provide correct input";
   } else if (!ConvertToPostfix()) {
@@ -16,7 +16,7 @@ void S21::Model::Solve(std::string &input_str) {
 double S21::Model::Calculate() {
   double value = 0, x = 0;
   stack_.clear();
-  if (std::get<1>(output_.back())) {
+  if (std::get<1>(output_.back()) == 'x') {
     x = std::get<0>(output_.back());
     output_.pop_back();
   }
@@ -34,8 +34,7 @@ double S21::Model::Calculate() {
       value = std::get<0>(stack_.back());
       stack_.pop_back();
       bool is_binary = IsOperBinary(std::get<1>(*iter));
-      HandleOperCalc(value, !stack_.empty() ? std::get<0>(stack_.back()) : 0,
-                     std::get<1>(*iter));
+      HandleOperCalc(value, std::get<0>(stack_.back()), std::get<1>(*iter));
       if (is_binary && !stack_.empty()) {
         stack_.pop_back();
       }
@@ -48,7 +47,41 @@ double S21::Model::Calculate() {
 }
 
 void S21::Model::HandleOperCalc(double &value, const double &stack_val,
-                                const char &oper) {}
+                                const char &oper) {
+  if (oper == '+') {
+    value += stack_val;
+  } else if (oper == '-') {
+    value = stack_val - value;
+  } else if (oper == '*') {
+    value *= stack_val;
+  } else if (oper == '/') {
+    value = stack_val / value;
+  } else if (oper == '^') {
+    value = pow(stack_val, value);
+  } else if (oper == '%') {
+    value = fmod(stack_val, value);
+  } else if (oper == '~') {
+    value = -value;
+  } else if (oper == s21_COS) {
+    value = cos(value);
+  } else if (oper == s21_SIN) {
+    value = sin(value);
+  } else if (oper == s21_TAN) {
+    value = tan(value);
+  } else if (oper == s21_ACOS) {
+    value = acos(value);
+  } else if (oper == s21_ASIN) {
+    value = asin(value);
+  } else if (oper == s21_ATAN) {
+    value = atan(value);
+  } else if (oper == s21_LN) {
+    value = log(value);
+  } else if (oper == s21_LOG) {
+    value = log10(value);
+  } else if (oper == s21_SQRT) {
+    value = sqrt(value);
+  }
+}
 
 bool S21::Model::IsOperBinary(const char &oper) {
   std::string opers = "+-*/^%";
@@ -80,10 +113,6 @@ bool S21::Model::ConvertToPostfix() {  // добавить ошибки, че-т
     output_.push_back(std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
     stack_.pop_back();
   }
-  output_.reverse();  // не уверен, что это нужно, либо менять везде на .front()
-                      // в калкулейте
-
-  PrintList();
 
   return status;
 }
@@ -137,7 +166,7 @@ void S21::Model::GetNum(int &i) {
 
 int S21::Model::CheckPrecedence(const char &oper) {
   int precedence = 0;
-  if (oper >= s21_COS && oper <= s21_LOG || oper == '%') {
+  if ((oper >= s21_COS && oper <= s21_LOG) || oper == '%') {
     precedence = 4;
   } else if (oper == '~' || oper == '`') {
     precedence = 3;
@@ -149,7 +178,7 @@ int S21::Model::CheckPrecedence(const char &oper) {
   return precedence;
 }
 
-bool S21::Model::NormalizeString(std::string &str) {
+bool S21::Model::NormalizeString(const std::string &str) {
   bool check = true;
   expression_ = str;
 
@@ -300,6 +329,9 @@ bool S21::Model::IsDigit(const char &ch) { return ch >= '0' && ch <= '9'; }
 std::string S21::Model::GetExpression() const noexcept { return expression_; }
 
 int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    return 1;
+  }
   S21::Model m;
   std::string input_string(argv[1]);
 
