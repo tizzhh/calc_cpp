@@ -88,6 +88,7 @@ void S21::Model::GetNum(int &i) {
     temp += expression_[i];
     ++i;
   }
+  --i;
   output_.push_back(std::make_tuple(std::stod(temp), 0, s21_NUM));
 }
 
