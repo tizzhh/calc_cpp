@@ -23,3 +23,16 @@ void s21_destroy(s21_Stack *top) {
     ptr = next;
   }
 }
+
+void s21_PrintStack(s21_Stack *res) {
+  s21_Stack *ptr = res;
+  while (ptr != NULL) {
+    if (ptr->type == s21_OPER) {
+      printf("%c ", ptr->oper);
+    } else if (ptr->type == s21_NUM) {
+      printf("%f ", ptr->val);
+    }
+    ptr = ptr->next;
+  }
+  printf("\n");
+}

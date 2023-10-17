@@ -57,6 +57,7 @@ typedef struct s21_Deposit {
 void s21_pop(s21_Stack **top);
 void s21_push(s21_Stack **top, double val, char oper, int type);
 void s21_destroy(s21_Stack *top);
+void s21_PrintStack(s21_Stack *res);
 
 char *s21_Solve(char *input_str, char *output_str);
 double s21_Calculate(s21_Stack **postfixx);

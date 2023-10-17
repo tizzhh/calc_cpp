@@ -36,7 +36,9 @@ double s21_Calculate(s21_Stack **postfixx) {
       value = result->val;
       s21_pop(&result);
       int is_binary = s21_CheckOperType(postfix->oper);
+      printf("%f\n", value);
       s21_HandleOperCalc(&value, result ? result->val : 0, postfix->oper);
+      printf("%f\n", value);
       if (is_binary && result != NULL) {
         s21_pop(&result);
       }
@@ -220,4 +222,23 @@ void s21_ConvertUnary(char *input_str) {
 int s21_CheckOperType(char ch) {
   return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^' ||
          ch == s21_MOD;
+}
+
+int main(void) {
+  // char input_str[] = "(2/(3+2)*5-7.5^3)mod3*sqrt(5)"; //-6.4287
+  //  char input_str[] = "sin(cos(1))^2*sin(3)";
+  //  char input_str[] = "-5*(-(-5-sin(-5^(-1))))"; //-24.00665
+  //  char input_str[] = "-1^2";
+  //    char input_str[] = "2.5+3-5.5";
+  //    char input_str[] = "5mod2";
+  //  char input_str[] = "sin(sin(1))*4";
+  //  char input_str[] = "4*sin(sin(~))";
+  //  char input_str[] = "(4*)";
+  char input_str[] = "-5+3";
+  char output_str[strlen(input_str) * 2];
+  printf("%s\n", s21_Solve(input_str, output_str));
+  // Stack *prefix = s21_ConvertToPostfix("2+3*5");
+  // s21_PrintStack(prefix);
+  // printf("%f\n", s21_Calculate(&prefix));
+  // s21_PrintStack(prefix);
 }
