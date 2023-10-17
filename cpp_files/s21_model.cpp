@@ -8,14 +8,102 @@ void S21::Model::Solve(std::string &input_str) {
   } else {
     Calculate();
     std::ostringstream oss;
-    oss << std::fixed << std::setprecision(7) << result_.top();
+    oss << std::fixed << std::setprecision(7) << std::get<0>(output_.back());
     expression_ = oss.str();
   }
 }
 
 void S21::Model::Calculate() { return; }
 
-bool S21::Model::ConvertToPostfix() { return true; }
+bool S21::Model::ConvertToPostfix() {
+  bool status = true;
+  output_.clear();
+  stack_.clear();
+  for (int i = 0, len = expression_.length(); i < len && status; ++i) {
+    if (IsDigit(expression_[i])) {
+      GetNum(i);
+    } else if (expression_[i] == '(') {
+      stack_.push_back(std::make_tuple(0, '(', s21_OPER));
+    } else if (IsFunc(expression_[i])) {
+      stack_.push_back(std::make_tuple(0, expression_[i], s21_OPER));
+    } else if (IsOper(expression_[i])) {
+      HandleOper(expression_[i]);
+    } else if (expression_[i] == ')') {
+      HandleRightParenthesis();
+    } else if (expression_[i] == 'x') {
+      output_.push_back(std::make_tuple(0, 'x', s21_NUM));
+    }
+  }
+  while (!stack_.empty()) {
+    output_.push_back(std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
+    stack_.pop_back();
+  }
+  output_.reverse();
+
+  PrintList();
+
+  return status;
+}
+
+void S21::Model::PrintList() {
+  for (const auto &elem : output_) {
+    if (std::get<2>(elem) == s21_OPER) {
+      std::cout << std::get<1>(elem);
+    } else {
+      std::cout << std::get<0>(elem);
+    }
+  }
+  std::cout << '\n';
+}
+
+void S21::Model::HandleRightParenthesis() {
+  while (!stack_.empty() && std::get<1>(stack_.back()) != '(') {
+    output_.push_back(std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
+    stack_.pop_back();
+  }
+  if (!stack_.empty()) stack_.pop_back();
+  if (!stack_.empty() && IsFunc(std::get<1>(stack_.back()))) {
+    output_.push_back(std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
+    stack_.pop_back();
+  }
+}
+
+void S21::Model::HandleOper(const char &oper) {
+  if (stack_.empty() || oper == '^') {
+    stack_.push_back(std::make_tuple(0, oper, s21_OPER));
+  } else {
+    while (!stack_.empty() && CheckPrecedence(oper) <=
+                                  CheckPrecedence(std::get<1>(stack_.back()))) {
+      output_.push_back(
+          std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
+      stack_.pop_back();
+    }
+    stack_.push_back(std::make_tuple(0, oper, s21_OPER));
+  }
+}
+
+void S21::Model::GetNum(int &i) {
+  std::string temp;
+  while (IsDigit(expression_[i]) || expression_[i] == '.') {
+    temp += expression_[i];
+    ++i;
+  }
+  output_.push_back(std::make_tuple(std::stod(temp), 0, s21_NUM));
+}
+
+int S21::Model::CheckPrecedence(const char &oper) {
+  int precedence = 0;
+  if (oper >= s21_COS && oper <= s21_LOG || oper == '%') {
+    precedence = 4;
+  } else if (oper == '~' || oper == '`') {
+    precedence = 3;
+  } else if (oper == '*' || oper == '/') {
+    precedence = 2;
+  } else if (oper == '-' || oper == '+') {
+    precedence = 1;
+  }
+  return precedence;
+}
 
 bool S21::Model::NormalizeString(
     std::string &str) {  // чеки, конверт в унарный, замена функций на
@@ -172,14 +260,15 @@ std::string S21::Model::GetExpression() const noexcept { return expression_; }
 int main(int argc, char *argv[]) {
   S21::Model m;
   std::string input_string(argv[1]);
-  bool isValid = m.NormalizeString(input_string);
 
-  if (isValid) {
-    std::cout << "Input string is valid." << std::endl;
-    std::cout << '\n' << m.GetExpression() << '\n';
-  } else {
-    std::cout << "ERROR, please provide correct input" << std::endl;
-  }
+  m.NormalizeString(input_string);
+  m.ConvertToPostfix();
 
-  return 0;
+  // bool isValid = m.NormalizeString(input_string);
+  // if (isValid) {
+  //   std::cout << "Input string is valid." << std::endl;
+  //   std::cout << '\n' << m.GetExpression() << '\n';
+  // } else {
+  //   std::cout << "ERROR, please provide correct input" << std::endl;
+  // }
 }

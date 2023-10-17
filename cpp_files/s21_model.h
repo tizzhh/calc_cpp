@@ -4,9 +4,9 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <list>
 #include <regex>
 #include <sstream>
-#include <stack>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -15,8 +15,8 @@ namespace S21 {
 class Model {
  private:
   std::string expression_;
-  std::stack<std::tuple<double, char, int>> postfix_;
-  std::stack<double> result_;
+  std::list<std::tuple<double, char, int>> stack_;
+  std::list<std::tuple<double, char, int>> output_;
   bool NumberCheck();
   bool OperCheck();
   bool DotCheck();
@@ -26,6 +26,12 @@ class Model {
   bool IsOper(const char &ch);
   bool IsFunc(const char &ch);
   void ReplaceFuncsNames();
+  void GetNum(int &i);
+  void HandleOper(const char &oper);
+  int CheckPrecedence(const char &oper);
+  void HandleRightParenthesis();
+
+  void PrintList();
 
   enum s21_funcs {
     s21_COS = 'a',
