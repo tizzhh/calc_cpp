@@ -315,6 +315,68 @@ void S21::Model::ReplaceFuncsNames() {
   }
 }
 
+void S21::Model::CreditCalc(s21_Credit &data,
+                            std::vector<double> &monthly_interest_p) {
+  data.rate /= 100.0;
+  double monthly_rate = data.rate / 12.0;
+  if (data.type == s21_ANNUITY) {
+    data.monthly =
+        data.total_credit * ((monthly_rate * pow(1 + monthly_rate, data.term)) /
+                             (pow(1 + monthly_rate, data.term) - 1));
+    data.total_payment = data.monthly * data.term;
+    data.overpay = (data.monthly * data.term) - data.total_credit;
+  } else if (data.type == s21_DIFFER) {
+    double montly_total_credit = data.total_credit / data.term;
+    for (int i = 0; i < data.term; ++i) {
+      data.monthly = data.total_credit / data.term;
+      monthly_interest_p[i] =
+          data.total_credit -
+          (montly_total_credit * (i + 1 - 1)) * monthly_rate;
+      monthly_interest_p[i] += montly_total_credit;
+      data.total_payment += monthly_interest_p[i];
+    }
+    data.overpay = data.total_payment - data.total_credit;
+  }
+}
+
+void S21::Model::DepositCalc(s21_Deposit &data, double rep_summ,
+                             double withd_summ) {
+  data.tax_rate /= 100;
+  data.interest_rate /= 100;
+  for (int i = 0; i < data.term; ++i) {
+    double cum_amount =
+        data.amount * data.interest_rate /
+        data.periodicity;  // надо починить периодичность (при периодичности 12
+                           // - норм, при другой - нет)
+    data.accrued_interest += cum_amount;
+    data.amount += cum_amount * data.capitalization;
+  }
+
+  data.tax_amount = data.tax_rate * data.accrued_interest;
+
+  data.deposit_amount = data.amount + rep_summ - withd_summ +
+                        (data.capitalization ? 0 : data.accrued_interest);
+}
+
+void S21::Model::GetGraphData(const std::string &input_str, double x_min,
+                              double x_max, double y_min, double y_max,
+                              std::vector<double> &x_data,
+                              std::vector<double> &y_data) {
+  double step = 0.01;
+  std::string output = input_str;
+  expression_ = output;
+  ConvertUnary();
+  ConvertToPostfix();
+  for (int i = 0; i <= (x_max - x_min) / step; ++i) {
+    double y = 0.0;
+    double x = x_min + i * step;
+    output_.push_back(std::make_tuple(x, 'x', s21_NUM));
+    y = Calculate();
+    x_data.push_back(x);
+    y_data.push_back(y);
+  }
+}
+
 bool S21::Model::IsFunc(const char &ch) {
   return ch >= s21_COS && ch <= s21_LOG;
 }

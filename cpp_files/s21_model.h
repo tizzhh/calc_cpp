@@ -10,6 +10,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 namespace S21 {
 class Model {
@@ -21,7 +22,6 @@ class Model {
   bool OperCheck();
   bool DotCheck();
   bool CheckParenthesisCorrectness();
-  void ConvertUnary();
   bool IsDigit(const char &ch);
   bool IsOper(const char &ch);
   bool IsFunc(const char &ch);
@@ -54,6 +54,28 @@ class Model {
     s21_DIFFER,
   };
 
+  typedef struct s21_Credit {
+    double total_credit;
+    int term;
+    double rate;
+    int type;
+    double monthly;
+    double overpay;
+    double total_payment;
+  } s21_Credit;
+
+  typedef struct s21_Deposit {
+    double amount;
+    int term;
+    double interest_rate;
+    double tax_rate;
+    int periodicity;
+    int capitalization;
+    double accrued_interest;
+    double tax_amount;
+    double deposit_amount;
+  } s21_Deposit;
+
  public:
   Model() = default;
   ~Model() = default;
@@ -63,6 +85,12 @@ class Model {
   bool ConvertToPostfix();
   double Calculate();
   std::string GetExpression() const noexcept;
+  void CreditCalc(s21_Credit &data, std::vector<double> &monthly_interest_p);
+  void DepositCalc(s21_Deposit &data, double rep_summ, double withd_summ);
+  void ConvertUnary();
+  void GetGraphData(const std::string &input_str, double x_min, double x_max,
+                    double y_min, double y_max, std::vector<double> &x_data,
+                    std::vector<double> &y_data);
 };
 }  // namespace S21
 #endif
