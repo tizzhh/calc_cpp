@@ -47,13 +47,6 @@ class Model {
     s21_LOG,
   };
 
-  enum Types_ {
-    s21_NUM,
-    s21_OPER,
-    s21_ANNUITY,
-    s21_DIFFER,
-  };
-
   typedef struct s21_Credit {
     double total_credit;
     int term;
@@ -62,6 +55,7 @@ class Model {
     double monthly;
     double overpay;
     double total_payment;
+    std::vector<double> monthly_interest_p;
   } s21_Credit;
 
   typedef struct s21_Deposit {
@@ -77,16 +71,26 @@ class Model {
   } s21_Deposit;
 
  public:
+  enum Types {
+    s21_NUM,
+    s21_OPER,
+    s21_ANNUITY,
+    s21_DIFFER,
+  };
+
   Model() = default;
   ~Model() = default;
 
+  s21_Credit credit_vals;
+  s21_Deposit deposit_vals;
+
   void Solve(const std::string &input_str);
   bool NormalizeString(const std::string &str);
-  bool ConvertToPostfix();
+  void ConvertToPostfix();
   double Calculate();
   std::string GetExpression() const noexcept;
-  void CreditCalc(s21_Credit &data, std::vector<double> &monthly_interest_p);
-  void DepositCalc(s21_Deposit &data, double rep_summ, double withd_summ);
+  void CreditCalc();
+  void DepositCalc(double rep_summ, double withd_summ);
   void ConvertUnary();
   void GetGraphData(const std::string &input_str, double x_min, double x_max,
                     double y_min, double y_max, std::vector<double> &x_data,

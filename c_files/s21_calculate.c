@@ -224,21 +224,21 @@ int s21_CheckOperType(char ch) {
          ch == s21_MOD;
 }
 
-int main(void) {
-  // char input_str[] = "(2/(3+2)*5-7.5^3)mod3*sqrt(5)"; //-6.4287
-  //  char input_str[] = "sin(cos(1))^2*sin(3)";
-  //  char input_str[] = "-5*(-(-5-sin(-5^(-1))))"; //-24.00665
-  //  char input_str[] = "-1^2";
-  //    char input_str[] = "2.5+3-5.5";
-  //    char input_str[] = "5mod2";
-  //  char input_str[] = "sin(sin(1))*4";
-  //  char input_str[] = "4*sin(sin(~))";
-  //  char input_str[] = "(4*)";
-  char input_str[] = "-5+3";
-  char output_str[strlen(input_str) * 2];
-  printf("%s\n", s21_Solve(input_str, output_str));
-  // Stack *prefix = s21_ConvertToPostfix("2+3*5");
-  // s21_PrintStack(prefix);
-  // printf("%f\n", s21_Calculate(&prefix));
-  // s21_PrintStack(prefix);
-}
+// int main(void) {
+//   // char input_str[] = "(2/(3+2)*5-7.5^3)mod3*sqrt(5)"; //-6.4287
+//   //  char input_str[] = "sin(cos(1))^2*sin(3)";
+//   //  char input_str[] = "-5*(-(-5-sin(-5^(-1))))"; //-24.00665
+//   //  char input_str[] = "-1^2";
+//   //    char input_str[] = "2.5+3-5.5";
+//   //    char input_str[] = "5mod2";
+//   //  char input_str[] = "sin(sin(1))*4";
+//   //  char input_str[] = "4*sin(sin(~))";
+//   //  char input_str[] = "(4*)";
+//   char input_str[] = "-5+3";
+//   char output_str[strlen(input_str) * 2];
+//   printf("%s\n", s21_Solve(input_str, output_str));
+//   // Stack *prefix = s21_ConvertToPostfix("2+3*5");
+//   // s21_PrintStack(prefix);
+//   // printf("%f\n", s21_Calculate(&prefix));
+//   // s21_PrintStack(prefix);
+// }

@@ -3,9 +3,8 @@
 void S21::Model::Solve(const std::string &input_str) {
   if (!NormalizeString(input_str)) {
     expression_ = "ERROR, please provide correct input";
-  } else if (!ConvertToPostfix()) {
-    expression_ = "ERROR, please provide correct input";
   } else {
+    ConvertToPostfix();
     double res = Calculate();
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(7) << res;
@@ -88,13 +87,12 @@ bool S21::Model::IsOperBinary(const char &oper) {
   return opers.find(oper) != std::string::npos;
 }
 
-bool S21::Model::ConvertToPostfix() {  // добавить ошибки, че-то там если
+void S21::Model::ConvertToPostfix() {  // добавить ошибки, че-то там если
                                        // осталась скобовчка в стэке (в задании
                                        // глянуть)
-  bool status = true;
   output_.clear();
   stack_.clear();
-  for (int i = 0, len = expression_.length(); i < len && status; ++i) {
+  for (int i = 0, len = expression_.length(); i < len; ++i) {
     if (IsDigit(expression_[i])) {
       GetNum(i);
     } else if (expression_[i] == '(') {
@@ -113,8 +111,6 @@ bool S21::Model::ConvertToPostfix() {  // добавить ошибки, че-т
     output_.push_back(std::make_tuple(0, std::get<1>(stack_.back()), s21_OPER));
     stack_.pop_back();
   }
-
-  return status;
 }
 
 void S21::Model::PrintList() const noexcept {
@@ -315,47 +311,58 @@ void S21::Model::ReplaceFuncsNames() {
   }
 }
 
-void S21::Model::CreditCalc(s21_Credit &data,
-                            std::vector<double> &monthly_interest_p) {
-  data.rate /= 100.0;
-  double monthly_rate = data.rate / 12.0;
-  if (data.type == s21_ANNUITY) {
-    data.monthly =
-        data.total_credit * ((monthly_rate * pow(1 + monthly_rate, data.term)) /
-                             (pow(1 + monthly_rate, data.term) - 1));
-    data.total_payment = data.monthly * data.term;
-    data.overpay = (data.monthly * data.term) - data.total_credit;
-  } else if (data.type == s21_DIFFER) {
-    double montly_total_credit = data.total_credit / data.term;
-    for (int i = 0; i < data.term; ++i) {
-      data.monthly = data.total_credit / data.term;
-      monthly_interest_p[i] =
-          data.total_credit -
-          (montly_total_credit * (i + 1 - 1)) * monthly_rate;
-      monthly_interest_p[i] += montly_total_credit;
-      data.total_payment += monthly_interest_p[i];
+void S21::Model::CreditCalc() {
+  this->credit_vals.rate /= 100.0;
+  double monthly_rate = this->credit_vals.rate / 12.0;
+  if (this->credit_vals.type == s21_ANNUITY) {
+    this->credit_vals.monthly =
+        this->credit_vals.total_credit *
+        ((monthly_rate * pow(1 + monthly_rate, this->credit_vals.term)) /
+         (pow(1 + monthly_rate, this->credit_vals.term) - 1));
+    this->credit_vals.total_payment =
+        this->credit_vals.monthly * this->credit_vals.term;
+    this->credit_vals.overpay =
+        (this->credit_vals.monthly * this->credit_vals.term) -
+        this->credit_vals.total_credit;
+  } else if (this->credit_vals.type == s21_DIFFER) {
+    double montly_total_credit =
+        this->credit_vals.total_credit / this->credit_vals.term;
+    for (int i = 0; i < this->credit_vals.term; ++i) {
+      this->credit_vals.monthly =
+          this->credit_vals.total_credit / this->credit_vals.term;
+      this->credit_vals.monthly_interest_p[i] =
+          (this->credit_vals.total_credit -
+           (montly_total_credit * (i + 1 - 1))) *
+          monthly_rate;
+      this->credit_vals.monthly_interest_p[i] += montly_total_credit;
+      this->credit_vals.total_payment +=
+          this->credit_vals.monthly_interest_p[i];
     }
-    data.overpay = data.total_payment - data.total_credit;
+    this->credit_vals.overpay =
+        this->credit_vals.total_payment - this->credit_vals.total_credit;
   }
 }
 
-void S21::Model::DepositCalc(s21_Deposit &data, double rep_summ,
-                             double withd_summ) {
-  data.tax_rate /= 100;
-  data.interest_rate /= 100;
-  for (int i = 0; i < data.term; ++i) {
+void S21::Model::DepositCalc(double rep_summ, double withd_summ) {
+  this->deposit_vals.tax_rate /= 100;
+  this->deposit_vals.interest_rate /= 100;
+  for (int i = 0; i < this->deposit_vals.term; ++i) {
     double cum_amount =
-        data.amount * data.interest_rate /
-        data.periodicity;  // надо починить периодичность (при периодичности 12
+        this->deposit_vals.amount * this->deposit_vals.interest_rate /
+        this->deposit_vals
+            .periodicity;  // надо починить периодичность (при периодичности 12
                            // - норм, при другой - нет)
-    data.accrued_interest += cum_amount;
-    data.amount += cum_amount * data.capitalization;
+    this->deposit_vals.accrued_interest += cum_amount;
+    this->deposit_vals.amount += cum_amount * this->deposit_vals.capitalization;
   }
 
-  data.tax_amount = data.tax_rate * data.accrued_interest;
+  this->deposit_vals.tax_amount =
+      this->deposit_vals.tax_rate * this->deposit_vals.accrued_interest;
 
-  data.deposit_amount = data.amount + rep_summ - withd_summ +
-                        (data.capitalization ? 0 : data.accrued_interest);
+  this->deposit_vals.deposit_amount =
+      this->deposit_vals.amount + rep_summ - withd_summ +
+      (this->deposit_vals.capitalization ? 0
+                                         : this->deposit_vals.accrued_interest);
 }
 
 void S21::Model::GetGraphData(const std::string &input_str, double x_min,
@@ -390,24 +397,24 @@ bool S21::Model::IsDigit(const char &ch) { return ch >= '0' && ch <= '9'; }
 
 std::string S21::Model::GetExpression() const noexcept { return expression_; }
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    return 1;
-  }
-  S21::Model m;
-  std::string input_string(argv[1]);
+// int main(int argc, char *argv[]) {
+//   if (argc != 2) {
+//     return 1;
+//   }
+//   S21::Model m;
+//   std::string input_string(argv[1]);
 
-  m.Solve(input_string);
-  std::cout << m.GetExpression() << '\n';
+//   m.Solve(input_string);
+//   std::cout << m.GetExpression() << '\n';
 
-  // m.NormalizeString(input_string);
-  // m.ConvertToPostfix();
+//   // m.NormalizeString(input_string);
+//   // m.ConvertToPostfix();
 
-  // bool isValid = m.NormalizeString(input_string);
-  // if (isValid) {
-  //   std::cout << "Input string is valid." << std::endl;
-  //   std::cout << '\n' << m.GetExpression() << '\n';
-  // } else {
-  //   std::cout << "ERROR, please provide correct input" << std::endl;
-  // }
-}
+//   // bool isValid = m.NormalizeString(input_string);
+//   // if (isValid) {
+//   //   std::cout << "Input string is valid." << std::endl;
+//   //   std::cout << '\n' << m.GetExpression() << '\n';
+//   // } else {
+//   //   std::cout << "ERROR, please provide correct input" << std::endl;
+//   // }
+// }
