@@ -168,7 +168,22 @@ TEST(Deposit, Test1) {
   ASSERT_FLOAT_EQ(model.deposit_vals.deposit_amount, exp_dep);
 }
 
+TEST(Graph, Test1) {
+  S21::Model model;
+  std::vector<double> x_data;
+  std::vector<double> y_data;
+  model.GetGraphData("x", -1, 1, -1, 1, x_data, y_data);
+  ASSERT_EQ(y_data.size(), x_data.size());
+  double step = 0.01;
+  for (int i = 0; i < x_data.size(); ++i) {
+    double x = -1 + step * i;
+    ASSERT_FLOAT_EQ(x, x_data[i]);
+    ASSERT_FLOAT_EQ(x, y_data[i]);
+  }
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  //::testing::GTEST_FLAG(filter) = "Calculation*";
   return RUN_ALL_TESTS();
 }

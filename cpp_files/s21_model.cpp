@@ -113,16 +113,16 @@ void S21::Model::ConvertToPostfix() {  // добавить ошибки, че-т
   }
 }
 
-void S21::Model::PrintList() const noexcept {
-  for (const auto &elem : output_) {
-    if (std::get<2>(elem) == s21_OPER) {
-      std::cout << std::get<1>(elem) << ' ';
-    } else {
-      std::cout << std::get<0>(elem) << ' ';
-    }
-  }
-  std::cout << '\n';
-}
+// void S21::Model::PrintList() const noexcept {
+//   for (const auto &elem : output_) {
+//     if (std::get<2>(elem) == s21_OPER) {
+//       std::cout << std::get<1>(elem) << ' ';
+//     } else {
+//       std::cout << std::get<0>(elem) << ' ';
+//     }
+//   }
+//   std::cout << '\n';
+// }
 
 void S21::Model::HandleRightParenthesis() {
   while (!stack_.empty() && std::get<1>(stack_.back()) != '(') {
@@ -178,7 +178,9 @@ bool S21::Model::NormalizeString(const std::string &str) {
   bool check = true;
   expression_ = str;
 
+  std::cout << expression_ << std::endl;
   ReplaceFuncsNames();
+  std::cout << expression_ << std::endl;
   if (!CheckParenthesisCorrectness()) {
     check = false;
   } else if (!DotCheck()) {
